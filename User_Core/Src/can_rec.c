@@ -5,62 +5,7 @@
 #include "queue.h"
 
 moto_info_t motor_info[MOTOR_MAX_NUM];       //rm电机返回的数据数组
-int Locker_ID,Back_flag,Close_flag;
-/**
-  * @brief  使用can时必须初始化它的过滤器，cubemx不会帮忙初始化这个，同时这个函数会启动这个can的can通信
-  *         需要根据自己的收发策略来更改这个函数，默认的接收策略是无条件全部接收can总线上的所有信息
-  *         这个函数放在can的初始化程序后面
-  * @param  *hcan 要初始化的目标can
-  */
-void my_can_filter_init_recv_all(CAN_HandleTypeDef *_hcan)
-{
-    //can1 &can2 use same filter config
-    CAN_FilterTypeDef CAN_FilterConfigStructure;
 
-    if (_hcan == &hcan1)
-    {
-        CAN_FilterConfigStructure.FilterBank = 0;
-    }
-    else if (_hcan == &hcan2)
-    {
-        CAN_FilterConfigStructure.FilterBank = 14;
-    }
-
-    CAN_FilterConfigStructure.FilterMode = CAN_FILTERMODE_IDMASK;
-    CAN_FilterConfigStructure.FilterScale = CAN_FILTERSCALE_32BIT;
-    CAN_FilterConfigStructure.FilterIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdHigh = 0x0000;
-    CAN_FilterConfigStructure.FilterMaskIdLow = 0x0000;
-    CAN_FilterConfigStructure.FilterFIFOAssignment = CAN_FilterFIFO0;
-    CAN_FilterConfigStructure.SlaveStartFilterBank = 14;
-    CAN_FilterConfigStructure.FilterActivation = ENABLE;
-
-    if (HAL_CAN_ConfigFilter(_hcan, &CAN_FilterConfigStructure) != HAL_OK)
-    {
-        Error_Handler();
-    }
-    /* Start the CAN peripheral */
-    if (HAL_CAN_Start(_hcan) != HAL_OK)
-    {
-        /* Start Error */
-        Error_Handler();
-    }
-
-    /* Activate CAN RX notification */
-    if (HAL_CAN_ActivateNotification(_hcan, CAN_IT_RX_FIFO0_MSG_PENDING) != HAL_OK)
-    {
-        /* Notification Error */
-        Error_Handler();
-    }
-
-    /* Activate CAN TX notification */
-    if (HAL_CAN_ActivateNotification(_hcan, CAN_IT_TX_MAILBOX_EMPTY) != HAL_OK)
-    {
-        /* Notification Error */
-        Error_Handler();
-    }
-}
 /**
  * @brief can1过滤器初始化，只接运动学解算的三个数据
  */
@@ -188,40 +133,6 @@ void set_current(CAN_HandleTypeDef *_hcan, int16_t id_range, int16_t current1, i
     }
 }
 
-void SendWheelData(CAN_HandleTypeDef *_hcan, uint32_t wheel_id, float wheel_spd, float wheel_direction)
-{
-    static CAN_TxHeaderTypeDef TxHeader;    //发送报文结构体定义
-    static uint8_t TxData[8];
-    static uint32_t mbox;
-    static union union_float union_32f;
-
-    TxHeader.StdId = wheel_id;     // id赋值
-    TxHeader.IDE = 0;              // 标准帧
-    TxHeader.RTR = 0;              //
-    TxHeader.DLC = 8;              // 8字节数据帧
-
-    union_32f.data_32 = wheel_spd;
-    TxData[0] = union_32f.data_8[0];
-    TxData[1] = union_32f.data_8[1];
-    TxData[2] = union_32f.data_8[2];
-    TxData[3] = union_32f.data_8[3];
-
-    union_32f.data_32 = wheel_direction;
-    TxData[4] = union_32f.data_8[0];
-    TxData[5] = union_32f.data_8[1];
-    TxData[6] = union_32f.data_8[2];
-    TxData[7] = union_32f.data_8[3];
-
-    //等一个空邮箱
-    while(HAL_CAN_GetTxMailboxesFreeLevel(_hcan) == 0);
-
-    //发送失败就卡住了
-    if (HAL_CAN_AddTxMessage(_hcan, &TxHeader, TxData, &mbox) != HAL_OK)
-    {
-        Error_Handler();
-    }
-}
-
 /**
  * @brief 对3508的反馈报文进行解码
  * @param ptr 目标电机
@@ -265,33 +176,16 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
     /*电机号记录*/
     static uint8_t index;
 
-    if(hcan == &hcan2)
-    {
-//        printf("222");
-        HAL_RetVal = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, rxdata.data_8);      //从CAN1接收数据，通过过滤器后放入FIFO0,存入RxMessage数据帧
-
-        if(HAL_RetVal == HAL_OK)
-        {
-            if(RxHeader.StdId >= 0x201 && RxHeader.StdId <= 0x208)
-            {
-                index = RxHeader.StdId - 0x201;   //结构体数组0-7对应电机ID1-8
-                motor_info_record(&motor_info[index], rxdata.data_8);   //解包
-            }
-            __HAL_CAN_ENABLE_IT(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);   //清一下，不然就卡住了
-        }
-    }
-    // demo版本不需要主控
-
     if(hcan == &hcan1)  // 收上层板子的发来的数据的
     {
-        HAL_RetVal = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, rxdata.data_8);      //从CAN1接收数据，通过过滤器后放入FIFO0,存入RxMessage数据帧
+        HAL_RetVal = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, rxdata.data_u8);      //从CAN1接收数据，通过过滤器后放入FIFO0,存入RxMessage数据帧
 
         if(HAL_RetVal == HAL_OK)
         {
             if(RxHeader.StdId >= 0x201 && RxHeader.StdId <= 0x208)
             {
                 index = RxHeader.StdId - 0x201;   //结构体数组0-7对应电机ID1-8
-                motor_info_record(&motor_info[index], rxdata.data_8);   //解包
+                motor_info_record(&motor_info[index], rxdata.data_u8);   //解包
             }
             __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);   //清一下，不然就卡住了
         }

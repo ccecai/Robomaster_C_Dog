@@ -1,6 +1,8 @@
 #ifndef __CAN_REC_H__
 #define __CAN_REC_H__
+
 #include "can.h"
+#include "odrive.h"
 
 typedef struct
 {
@@ -15,24 +17,6 @@ typedef struct
     uint16_t last_angle;          //abs angle_now range:[0,8191]
     uint32_t msg_cnt;              //消息计数值，收到一次就+1
 }moto_info_t;
-
-typedef union
-{
-    uint8_t data_8[8];
-    uint16_t data_16[4];
-    int32_t data_int[2];
-    uint32_t data_uint[2];
-    float data_f[2];
-}union_64;
-
-typedef union
-{
-    uint8_t data_8[4];
-    uint16_t data_16[2];
-    int32_t data_int;
-    uint32_t data_uint;
-    float data_f;
-}union_32;
 
 union union_float
 {

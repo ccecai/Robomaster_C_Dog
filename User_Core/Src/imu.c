@@ -280,78 +280,78 @@ void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
   * @param[in]      pvParameters: NULL
   * @retval         none
   */
-void INS_task(void const *pvParameters)
-{
-    //wait a time
-    osDelay(INS_TASK_INIT_TIME);
-    while(BMI088_init())
-    {
-        osDelay(100);
-    }
-    while(ist8310_init())
-    {
-        osDelay(100);
-    }
-
-    BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
-
-    PID_Init(&imu_temp_pid);
-
-    imu_temp_pid.P = 3200.0f;
-    imu_temp_pid.I = 0.4f;
-    imu_temp_pid.Iout_limit = 4400.0f;
-    imu_temp_pid.Output_limit = 4500.0f;
-
-    AHRS_init(INS_quat, bmi088_real_data.accel, ist8310_real_data.mag);
-
-
-    //get the handle of task
-    //获取当前任务的任务句柄，
-    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
-
-    //set spi frequency
-    hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
-
-    if (HAL_SPI_Init(&hspi1) != HAL_OK)
-    {
-        Error_Handler();
-    }
-
-
-    SPI1_DMA_init((uint32_t)gyro_dma_tx_buf, (uint32_t)gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
-
-    imu_start_dma_flag = 1;
-
-    while (1)
-    {
-        //wait spi DMA tansmit done
-        //等待SPI DMA传输
-        while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS)
-        {
-        }
-
-
-        if(gyro_update_flag & (1 << IMU_NOTIFY_SHFITS))
-        {
-            gyro_update_flag &= ~(1 << IMU_NOTIFY_SHFITS);
-            BMI088_gyro_read_over(gyro_dma_rx_buf + BMI088_GYRO_RX_BUF_DATA_OFFSET, bmi088_real_data.gyro);
-        }
-
-        if(accel_update_flag & (1 << IMU_UPDATE_SHFITS))
-        {
-            accel_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
-            BMI088_accel_read_over(accel_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, bmi088_real_data.accel, &bmi088_real_data.time);
-        }
-
-        if(accel_temp_update_flag & (1 << IMU_UPDATE_SHFITS))
-        {
-            accel_temp_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
-            BMI088_temperature_read_over(accel_temp_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, &bmi088_real_data.temp);
-            imu_temp_control(bmi088_real_data.temp);
-        }
-
-        AHRS_update(INS_quat, 0.001f, bmi088_real_data.gyro, bmi088_real_data.accel, ist8310_real_data.mag);
-        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
-
-    }
-}
+//void INS_task(void const *pvParameters)
+//{
+//    //wait a time
+//    osDelay(INS_TASK_INIT_TIME);
+//    while(BMI088_init())
+//    {
+//        osDelay(100);
+//    }
+//    while(ist8310_init())
+//    {
+//        osDelay(100);
+//    }
+//
+//    BMI088_read(bmi088_real_data.gyro, bmi088_real_data.accel, &bmi088_real_data.temp);
+//
+//    PID_Init(&imu_temp_pid);
+//
+//    imu_temp_pid.P = 3200.0f;
+//    imu_temp_pid.I = 0.4f;
+//    imu_temp_pid.Iout_limit = 4400.0f;
+//    imu_temp_pid.Output_limit = 4500.0f;
+//
+//    AHRS_init(INS_quat, bmi088_real_data.accel, ist8310_real_data.mag);
+//
+//
+//    //get the handle of task
+//    //获取当前任务的任务句柄，
+//    INS_task_local_handler = xTaskGetHandle(pcTaskGetName(NULL));
+//
+//    //set spi frequency
+//    hspi1.Init.BaudRatePrescaler = SPI_BAUDRATEPRESCALER_8;
+//
+//    if (HAL_SPI_Init(&hspi1) != HAL_OK)
+//    {
+//        Error_Handler();
+//    }
+//
+//
+//    SPI1_DMA_init((uint32_t)gyro_dma_tx_buf, (uint32_t)gyro_dma_rx_buf, SPI_DMA_GYRO_LENGHT);
+//
+//    imu_start_dma_flag = 1;
+//
+//    while (1)
+//    {
+//        //wait spi DMA tansmit done
+//        //等待SPI DMA传输
+//        while (ulTaskNotifyTake(pdTRUE, portMAX_DELAY) != pdPASS)
+//        {
+//        }
+//
+//
+//        if(gyro_update_flag & (1 << IMU_NOTIFY_SHFITS))
+//        {
+//            gyro_update_flag &= ~(1 << IMU_NOTIFY_SHFITS);
+//            BMI088_gyro_read_over(gyro_dma_rx_buf + BMI088_GYRO_RX_BUF_DATA_OFFSET, bmi088_real_data.gyro);
+//        }
+//
+//        if(accel_update_flag & (1 << IMU_UPDATE_SHFITS))
+//        {
+//            accel_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
+//            BMI088_accel_read_over(accel_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, bmi088_real_data.accel, &bmi088_real_data.time);
+//        }
+//
+//        if(accel_temp_update_flag & (1 << IMU_UPDATE_SHFITS))
+//        {
+//            accel_temp_update_flag &= ~(1 << IMU_UPDATE_SHFITS);
+//            BMI088_temperature_read_over(accel_temp_dma_rx_buf + BMI088_ACCEL_RX_BUF_DATA_OFFSET, &bmi088_real_data.temp);
+//            imu_temp_control(bmi088_real_data.temp);
+//        }
+//
+//        AHRS_update(INS_quat, 0.001f, bmi088_real_data.gyro, bmi088_real_data.accel, ist8310_real_data.mag);
+//        get_angle(INS_quat, INS_angle + INS_YAW_ADDRESS_OFFSET, INS_angle + INS_PITCH_ADDRESS_OFFSET, INS_angle + INS_ROLL_ADDRESS_OFFSET);
+//
+//    }
+//}
