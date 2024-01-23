@@ -164,60 +164,47 @@ void Posture_Controller(RC_ctrl_t *local_rc_ctrl)
 {
     if(local_rc_ctrl->rc.s[1] == 3)
     {
-        AllLegsSpeedLimit(SpeedMode_FAST);
         StandUp_Posture();
     }
 
     else if(local_rc_ctrl->rc.s[1] == 1)
     {
-        AllLegsSpeedLimit(SpeedMode_VERYSLOW);
         LieDown_Posture();
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[1] > 330)
     {
-        AllLegsSpeedLimit(SpeedMode_FAST);
         Trot(Backward,1);
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[1] < -330)
     {
-        AllLegsSpeedLimit(SpeedMode_FAST);
         Trot(Forward,1);
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[0] > 330)
     {
-        AllLegsSpeedLimit(SpeedMode_FAST);
         Turn('r');
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[0] < -330)
     {
-        AllLegsSpeedLimit(SpeedMode_FAST);
         Turn('l');
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[0] > -330 && local_rc_ctrl->rc.ch[0] < 330 && local_rc_ctrl->rc.ch[1] > -330 && local_rc_ctrl->rc.ch[1] < 330)
     {
-        AllLegsSpeedLimit(SpeedMode_FAST);
         StandUp_Posture();
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[3] > 330)
     {
-        AllLegsSpeedLimit(SpeedMode_FAST);
         Up_and_Down((float)((local_rc_ctrl->rc.ch[3] - 330)) / 500);
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[3] < -330)
     {
-        AllLegsSpeedLimit(SpeedMode_FAST);
         Up_and_Down((float)((local_rc_ctrl->rc.ch[3] + 300)) / 500);
     }
-//    else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl.rc.s[0] == 3)
-//    {
-//
-//    }
 
 }

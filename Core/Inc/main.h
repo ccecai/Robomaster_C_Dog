@@ -41,8 +41,6 @@ extern "C" {
 #include "BMI088Middleware.h"
 
 #include "crc16.h"
-#include "motor.h"
-#include "common.h"
 #include "RemoteControl.h"
 #include "ist8310driver.h"
 #include "imu.h"
@@ -52,11 +50,8 @@ extern "C" {
 #include "bsp_spi.h"
 #include "bsp_imu_pwm.h"
 
-
-
 #include "Attitude_Slove.h"
 #include "Attitude_Task.h"
-#include "Japanimu.h"
 
 #include "cmsis_os.h"
 #include <stdio.h>

@@ -302,8 +302,6 @@ void INS_task(void const *pvParameters)
     imu_temp_pid.Iout_limit = 4400.0f;
     imu_temp_pid.Output_limit = 4500.0f;
 
-//    PID_init(&imu_temp_pid, PID_POSITION, imu_temp_PID, TEMPERATURE_PID_MAX_OUT, TEMPERATURE_PID_MAX_IOUT);
-
     AHRS_init(INS_quat, bmi088_real_data.accel, ist8310_real_data.mag);
 
 

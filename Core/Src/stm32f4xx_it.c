@@ -24,7 +24,6 @@
 /* USER CODE BEGIN Includes */
 #include "RemoteControl.h"
 #include "spi.h"
-#include "Japanimu.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -285,56 +284,7 @@ void TIM2_IRQHandler(void)
 void USART1_IRQHandler(void)
 {
   /* USER CODE BEGIN USART1_IRQn 0 */
-//    uint32_t tmp_flag = 0;
-//    uint32_t temp;
-//    uint16_t rx_len;
-//    tmp_flag =__HAL_UART_GET_FLAG(&huart1,UART_FLAG_IDLE); //获取IDLE标志位
-//    if((tmp_flag != RESET))//idle标志被置位
-//    {
-//        __HAL_UART_CLEAR_IDLEFLAG(&huart1);//清除标志位
-//        temp = huart1.Instance->SR;  //清除状态寄存器SR,读取SR寄存器可以实现清除SR寄存器的功能
-//        temp = huart1.Instance->DR; //读取数据寄存器中的数据
-//        HAL_UART_DMAStop(&huart1); //
-//        temp = hdma_usart1_rx.Instance->NDTR;// 获取DMA中未传输的数据个数，NDTR寄存器分析见下面
-//        rx_len =  IMU_REC_LEN - temp; //总计数减去未传输的数据个数，得到已经接收的数据个数
-//        //进行数据处理
-////        RemoteCtrl(rx_len);	//中断中的数据处理去改变相应控制变量的值
-//        IMU_Data_Process(1);	//中断中的数据处理去改变相应控制变量的值
-//    }//https://www.cnblogs.com/zjx123/p/11949052.html->该知识网址
-//    HAL_UART_Receive_DMA(&huart1,(uint8_t *)&IMU_RX_BUF,IMU_REC_LEN);//使能串口5 DMA接受
-    uint8_t id;                          //电机id
-    uint8_t mode;                        //电机模式
-    if(__HAL_UART_GET_FLAG(&huart1,UART_FLAG_IDLE)==SET)
-    {
-        __HAL_UART_CLEAR_IDLEFLAG(&huart1);//清除空闲中断接受标志wei
-        HAL_UART_DMAStop(&huart1);//关闭DMA接受
-//        usart_printf("%d,%d,%d,%d,%d,%d\r\n",LeftLeg_ReceiverBuffer[0],LeftLeg_ReceiverBuffer[1],LeftLeg_ReceiverBuffer[2],LeftLeg_ReceiverBuffer[3],LeftLeg_ReceiverBuffer[4]);
-        uart1_rec_crc = CRC16_CCITT(LeftLeg_ReceiverBuffer, 14);
-        if(uart1_rec_crc == (LeftLeg_ReceiverBuffer[14] | (LeftLeg_ReceiverBuffer[15] << 8)))           //接收到正确的反馈报文
-        {
-            id = (LeftLeg_ReceiverBuffer[2] & 0x0F);
-            mode = (LeftLeg_ReceiverBuffer[2] >> 4) & 0x07;
-            if (mode == 0)
-            {
-                began_pos[id] =
-                        LeftLeg_ReceiverBuffer[7] | (LeftLeg_ReceiverBuffer[8] << 8) | (LeftLeg_ReceiverBuffer[9] << 16) | (LeftLeg_ReceiverBuffer[10] << 24);
-                end_pos[id] = began_pos[id];       //把began_pos当成第一次PID计算的反馈zhi
 
-            }
-            else if (mode == 1)
-            {
-//                usart_printf("%d\r\n",end_pos[id]);
-                end_pos[id] = LeftLeg_ReceiverBuffer[7] | (LeftLeg_ReceiverBuffer[8] << 8) | (LeftLeg_ReceiverBuffer[9] << 16) | (LeftLeg_ReceiverBuffer[10] << 24);
-                real_speed[id] = (int16_t)(LeftLeg_ReceiverBuffer[5] | (LeftLeg_ReceiverBuffer[6] << 8));
-                temperature[id] = (int8_t)LeftLeg_ReceiverBuffer[11];
-                merror[id] = (LeftLeg_ReceiverBuffer[12] & 0x07);
-//                usart_printf("%d\r\n",real_speed[5]);
-            }
-
-        }
-        //memset(UART6_DMA_REbuffer,0x00,sizeof(UART6_DMA_REbuffer));//清除数组接受到的数据
-    }
-    HAL_UART_Receive_DMA(&huart1, (uint8_t *)&LeftLeg_ReceiverBuffer, MOTOR_RECEIVE_SIZE);//重新使能DMA接受，继续下1轮recieve
   /* USER CODE END USART1_IRQn 0 */
   HAL_UART_IRQHandler(&huart1);
   /* USER CODE BEGIN USART1_IRQn 1 */

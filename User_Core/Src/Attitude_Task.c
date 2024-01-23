@@ -44,10 +44,6 @@ void Trot(float direction,int8_t kind)
         case 1://小步Trot
             NewHeartbeat = 6;
             ChangeGainOfPID(7.0f,0,0.6f,0);
-//            Change_SinStateDetachedParams(&state_detached_params[11],11,1,22.0f,28.0f,
-//            10.0f,10.0f,0.2f,5.0f);
-//            Change_SinStateDetachedParams(&state_detached_params[11],11,2,22.0f,28.0f,
-//                                          10.0f,10.0f,0.2f,5.0f)ol
 //            YawControl(yawwant, &state_detached_params[11],direction);
             gait_detached(state_detached_params[11],0.0f, 0.5f, 0.5f, 0.0f,
                           direction,direction,direction,direction);
@@ -90,34 +86,6 @@ void Turn(int state_flag)
     }
     gait_detached(state_detached_params[8],  0.0f, 0.5f, 0.5f, 0.0f,
                   1.0f, 1.0f, 1.0f,1.0f);
-}
-
-void EndPosture(void)
-{
-    motor_pos_controll(0,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(1,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(2,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(3,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(4,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(5,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(6,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(7,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(8,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(9,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(10,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
-    motor_pos_controll(11,0,position);                    //3号电机与0号电机镜像对称
-    HAL_Delay(1);
 }
 
 void Dog_Posture(void)

@@ -143,21 +143,11 @@ void StartDebug(void const * argument)
   /* USER CODE BEGIN StartDebug */
     Mymain_Init();
 
-    osDelay(5000);
+//    osDelay(5000);
 
-    MOTOR_Send_Init(); //初始化电机发送帧头
     Eight_PID_Init();//八个电机PID结构体初始化
 
-    PID_Init(&Yaw_PID_Loop);
-    Yaw_PID_Loop.P = 2.0f;
-    Yaw_PID_Loop.D = 0.2f;
-    Yaw_PID_Loop.SumError_limit = 2500;
-    Yaw_PID_Loop.Output_limit = 15;//陀螺仪结构体初始化
-
     ChangeGainOfPID(10.0f,0,0.1f,0.05f);//初始化pid
-
-    Get_motor_began_pos();       //获得各个电机的初始位
-    EndPosture();                //锁住电机
 
     vTaskResume(PostureHandle);
     vTaskResume(RemoteControlTaHandle);
@@ -196,7 +186,9 @@ void RemoteControl(void const * argument)
        *
        ****************/
       Posture_Controller(local_rc_ctrl);
-//      usart_printf("%d,%d,%d,%d,%d,%d\r\n",local_rc_ctrl->rc.ch[0],local_rc_ctrl->rc.ch[1],local_rc_ctrl->rc.ch[2],local_rc_ctrl->rc.ch[3],local_rc_ctrl->rc.s[0],local_rc_ctrl->rc.s[1]);
+
+      usart_printf("%d,%d,%d,%d,%d,%d\n",local_rc_ctrl->rc.ch[0],local_rc_ctrl->rc.ch[1],local_rc_ctrl->rc.ch[2],local_rc_ctrl->rc.ch[3],local_rc_ctrl->rc.s[0],local_rc_ctrl->rc.s[1]);
+
     osDelay(3);
   }
   /* USER CODE END RemoteControl */
@@ -215,8 +207,6 @@ void posture(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-     leg_pos_controll();
-     leg_pos_controll02();
 
     osDelay(5);
   }

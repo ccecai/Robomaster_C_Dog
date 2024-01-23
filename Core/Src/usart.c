@@ -21,7 +21,7 @@
 #include "usart.h"
 
 /* USER CODE BEGIN 0 */
-#include "Japanimu.h"
+
 /* USER CODE END 0 */
 
 UART_HandleTypeDef huart1;
@@ -46,7 +46,7 @@ void MX_USART1_UART_Init(void)
 
   /* USER CODE END USART1_Init 1 */
   huart1.Instance = USART1;
-  huart1.Init.BaudRate = 4000000;
+  huart1.Init.BaudRate = 115200;
   huart1.Init.WordLength = UART_WORDLENGTH_8B;
   huart1.Init.StopBits = UART_STOPBITS_1;
   huart1.Init.Parity = UART_PARITY_NONE;
@@ -58,10 +58,7 @@ void MX_USART1_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART1_Init 2 */
-//    __HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE);//启用串口5 空闲接受中断
-//    HAL_UART_Receive_DMA(&huart1,(uint8_t *)&IMU_RX_BUF,IMU_REC_LEN);//使能串口5 DMA接受
-    __HAL_UART_ENABLE_IT(&huart1,UART_IT_IDLE);//启用串口5 空闲接受中断
-    HAL_UART_Receive_DMA(&huart1,(uint8_t *)&LeftLeg_ReceiverBuffer,MOTOR_RECEIVE_SIZE);//使能串口5 DMA接受
+
   /* USER CODE END USART1_Init 2 */
 
 }
@@ -119,8 +116,7 @@ void MX_USART6_UART_Init(void)
     Error_Handler();
   }
   /* USER CODE BEGIN USART6_Init 2 */
-//    __HAL_UART_ENABLE_IT(&huart6,UART_IT_IDLE);//启用串口5 空闲接受中断
-//    HAL_UART_Receive_DMA(&huart6,(uint8_t *)&LeftLeg_ReceiverBuffer,MOTOR_RECEIVE_SIZE);//使能串口5 DMA接受
+
   /* USER CODE END USART6_Init 2 */
 
 }
