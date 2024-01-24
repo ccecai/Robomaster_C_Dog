@@ -4,6 +4,16 @@
 #include "main.h"
 
 /**
+ * 电机回馈报文结构体
+ */
+
+typedef struct
+{
+    float Pos;
+    float Vel;
+}Feedback;
+
+/**
  * 输出速度模式所用的结构体
  */
 
@@ -26,6 +36,38 @@ typedef union
     int16_t data_v;
     int16_t data_t;
 }union_16;
+
+/**
+ * 设置电机状态的结构体
+ */
+
+typedef union
+{
+    uint8_t data_8[8];
+    uint32_t data_id;
+}SetState;
+
+/**
+ * 得到编码器反馈电机速度与位置的结构体
+ */
+
+typedef union
+{
+    uint8_t data_8[4];
+    float data_pos;
+    float data_vel;
+}FeedBack;
+
+/**
+ * 设置电机控制模式的结构体
+ */
+
+typedef union
+{
+    uint8_t data_8[4];
+    uint32_t data_c;
+    uint32_t data_i;
+}SetMode;
 
 /**
  * RM电机接收所用的结构体
@@ -95,6 +137,19 @@ typedef union
 #define Set_Axis6_Requested_State 	 Axis6_ID + 0x007
 #define Set_Axis7_Requested_State 	 Axis7_ID + 0x007
 #define Set_Axis8_Requested_State 	 Axis8_ID + 0x007
+
+/**
+ * 检测八个电机的编码器的速度与位置
+ */
+
+#define Get_Axis1_Encoder            Axis1_ID + 0x009
+#define Get_Axis2_Encoder            Axis2_ID + 0x009
+#define Get_Axis3_Encoder            Axis3_ID + 0x009
+#define Get_Axis4_Encoder            Axis4_ID + 0x009
+#define Get_Axis5_Encoder            Axis5_ID + 0x009
+#define Get_Axis6_Encoder            Axis6_ID + 0x009
+#define Get_Axis7_Encoder            Axis7_ID + 0x009
+#define Get_Axis8_Encoder            Axis8_ID + 0x009
 
 /**
  * 设置八个电机的控制模式，是MCU发给电机
@@ -180,29 +235,17 @@ typedef union
 #define INPUT_MODE_MIRROR    										7
 #define INPUT_MODE_Tuning    										8
 
+extern Feedback GIM6010[9];
 
-void Odrive_Axis1_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque);
-void Odrive_Axis2_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque);
-void Odrive_Axis3_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque);
-void Odrive_Axis4_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque);
-void Odrive_Axis5_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque);
-void Odrive_Axis6_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque);
-void Odrive_Axis7_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque);
-void Odrive_Axis8_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque);
-
-void Odrive_Axis1_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF);
-void Odrive_Axis2_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF);
-void Odrive_Axis3_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF);
-void Odrive_Axis4_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF);
-void Odrive_Axis5_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF);
-void Odrive_Axis6_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF);
-void Odrive_Axis7_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF);
-void Odrive_Axis8_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF);
-
+void Odrive_Axis_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque,uint32_t stdid);
+void Odrive_Axis_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF,uint32_t stdid);
+void Odrive_Set_State(CAN_HandleTypeDef *_hcan, uint32_t State,uint32_t stdid);
+void Odrive_Set_ControlMode(CAN_HandleTypeDef *_hcan, uint32_t ContorlMode,uint32_t InputMode,uint32_t stdid);
+void Odrive_Encoder_feedback(CAN_HandleTypeDef *_hcan, float Pos,float Vel,uint32_t stdid);
 void Odrive_val_output(uint8_t id);
 void AllMotor_valOutput(void);
-
 void Odrive_Postion_output(uint8_t id);
 void AllMotor_PositionOutput(void);
+void Odrive_feedback_record(Feedback *ptr,uint8_t *data);
 
 #endif

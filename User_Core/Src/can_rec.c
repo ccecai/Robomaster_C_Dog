@@ -173,10 +173,26 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
     HAL_StatusTypeDef HAL_RetVal;
     CAN_RxHeaderTypeDef RxHeader;
     union_64 rxdata;
+    FeedBack feed_rxdata;
     /*电机号记录*/
     static uint8_t index;
 
-    if(hcan == &hcan1)  // 收上层板子的发来的数据的
+    if(hcan == &hcan1)
+    {
+        HAL_RetVal = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, feed_rxdata.data_8);      //从CAN1接收数据，通过过滤器后放入FIFO0,存入RxMessage数据帧
+
+        if(HAL_RetVal == HAL_OK)
+        {
+            if(RxHeader.StdId >= Get_Axis1_Encoder && RxHeader.StdId <= Get_Axis8_Encoder)
+            {
+                index = (RxHeader.StdId - 0x009) >> 5;
+                Odrive_feedback_record(&GIM6010[index],feed_rxdata.data_8);
+            }
+            __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);   //清一下，不然就卡住了
+        }
+    }
+
+    if(hcan == &hcan2)  // 收上层板子的发来的数据的
     {
         HAL_RetVal = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, rxdata.data_u8);      //从CAN1接收数据，通过过滤器后放入FIFO0,存入RxMessage数据帧
 
@@ -187,7 +203,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
                 index = RxHeader.StdId - 0x201;   //结构体数组0-7对应电机ID1-8
                 motor_info_record(&motor_info[index], rxdata.data_u8);   //解包
             }
-            __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);   //清一下，不然就卡住了
+            __HAL_CAN_ENABLE_IT(&hcan2, CAN_IT_RX_FIFO0_MSG_PENDING);   //清一下，不然就卡住了
         }
     }
 
