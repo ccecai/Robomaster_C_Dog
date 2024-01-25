@@ -52,7 +52,7 @@ fp32 temp;
 /* USER CODE END Variables */
 osThreadId StartDebugTaskHandle;
 osThreadId RemoteControlTaHandle;
-osThreadId PostureHandle;
+osThreadId GIM_OutputHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -61,7 +61,7 @@ osThreadId PostureHandle;
 
 void StartDebug(void const * argument);
 void RemoteControl(void const * argument);
-void posture(void const * argument);
+void GIM_OutputTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -115,17 +115,17 @@ void MX_FREERTOS_Init(void) {
   StartDebugTaskHandle = osThreadCreate(osThread(StartDebugTask), NULL);
 
   /* definition and creation of RemoteControlTa */
-  osThreadDef(RemoteControlTa, RemoteControl, osPriorityIdle, 0, 256);
+  osThreadDef(RemoteControlTa, RemoteControl, osPriorityBelowNormal, 0, 512);
   RemoteControlTaHandle = osThreadCreate(osThread(RemoteControlTa), NULL);
 
-  /* definition and creation of Posture */
-  osThreadDef(Posture, posture, osPriorityNormal, 0, 512);
-  PostureHandle = osThreadCreate(osThread(Posture), NULL);
+  /* definition and creation of GIM_Output */
+  osThreadDef(GIM_Output, GIM_OutputTask, osPriorityNormal, 0, 512);
+  GIM_OutputHandle = osThreadCreate(osThread(GIM_Output), NULL);
 
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
     vTaskResume(StartDebugTaskHandle);
-    vTaskSuspend(PostureHandle);
+    vTaskSuspend(GIM_OutputHandle);
     vTaskSuspend(RemoteControlTaHandle);
   /* USER CODE END RTOS_THREADS */
 
@@ -143,15 +143,10 @@ void StartDebug(void const * argument)
   /* USER CODE BEGIN StartDebug */
     Mymain_Init();
 
-//    osDelay(5000);
+    Motor_Init();
 
-    Eight_PID_Init();//八个电机PID结构体初始化
-
-    ChangeGainOfPID(10.0f,0,0.1f,0.05f);//初始化pid
-
-    vTaskResume(PostureHandle);
+    vTaskResume(GIM_OutputHandle);
     vTaskResume(RemoteControlTaHandle);
-
 
   /* Infinite loop */
   for(;;)
@@ -187,30 +182,27 @@ void RemoteControl(void const * argument)
        ****************/
       Posture_Controller(local_rc_ctrl);
 
-      usart_printf("%d,%d,%d,%d,%d,%d\n",local_rc_ctrl->rc.ch[0],local_rc_ctrl->rc.ch[1],local_rc_ctrl->rc.ch[2],local_rc_ctrl->rc.ch[3],local_rc_ctrl->rc.s[0],local_rc_ctrl->rc.s[1]);
-
-    osDelay(3);
+      osDelay(5);
   }
   /* USER CODE END RemoteControl */
 }
 
-/* USER CODE BEGIN Header_posture */
+/* USER CODE BEGIN Header_GIM_OutputTask */
 /**
-* @brief Function implementing the Posture thread.
+* @brief Function implementing the GIM_Output thread.
 * @param argument: Not used
 * @retval None
 */
-/* USER CODE END Header_posture */
-void posture(void const * argument)
+/* USER CODE END Header_GIM_OutputTask */
+void GIM_OutputTask(void const * argument)
 {
-  /* USER CODE BEGIN posture */
+  /* USER CODE BEGIN GIM_OutputTask */
   /* Infinite loop */
   for(;;)
   {
-
-    osDelay(5);
+    osDelay(1);
   }
-  /* USER CODE END posture */
+  /* USER CODE END GIM_OutputTask */
 }
 
 /* Private application code --------------------------------------------------*/

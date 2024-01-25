@@ -183,6 +183,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
 
         if(HAL_RetVal == HAL_OK)
         {
+
             if(RxHeader.StdId >= Get_Axis1_Encoder && RxHeader.StdId <= Get_Axis8_Encoder)
             {
                 index = (RxHeader.StdId - 0x009) >> 5;

@@ -1,14 +1,5 @@
 #include "odrive.h"
 #include "can.h"
-/*
-这是为stm32F4xx系列芯片适配ODRIVE的CAN总线通信API
-
-需要注意的是，CAN波特率配置的是1Mbps，每条指令差不多有100位/帧，所以一条指令发送完成的时间应该是在100us数量级上
-
-上层代码调节时需要注意系统带宽！！！
-上层代码调节时需要注意系统带宽！！！
-上层代码调节时需要注意系统带宽！！！
-*/
 
 union_32 union_32f;
 union_16 union_16f;
@@ -16,7 +7,13 @@ FeedBack feedback;
 SetState Setstate;
 SetMode Setmode;
 Feedback GIM6010[9];
-
+/**
+ * 输出目标速度值
+ * @param _hcan
+ * @param Input_Vel
+ * @param Torque
+ * @param stdid
+ */
 void Odrive_Axis_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque,uint32_t stdid)
 {
     CAN_TxHeaderTypeDef TxHeader;
@@ -49,8 +46,14 @@ void Odrive_Axis_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float T
         Error_Handler();
     }
 }
-
-
+/**
+ * 输出目标角度值
+ * @param _hcan
+ * @param Input_Pos
+ * @param Vel_FF
+ * @param Torque_FF
+ * @param stdid
+ */
 void Odrive_Axis_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF,uint32_t stdid)
 {
     static CAN_TxHeaderTypeDef TxHeader;
@@ -85,7 +88,12 @@ void Odrive_Axis_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,in
         Error_Handler();
     }
 }
-
+/**
+ * 用来设置电机的状态，其中包括空闲（IDLE），与闭环模式等
+ * @param _hcan
+ * @param State
+ * @param stdid
+ */
 void Odrive_Set_State(CAN_HandleTypeDef *_hcan, uint32_t State,uint32_t stdid)
 {
     static CAN_TxHeaderTypeDef TxHeader;
@@ -117,7 +125,13 @@ void Odrive_Set_State(CAN_HandleTypeDef *_hcan, uint32_t State,uint32_t stdid)
         Error_Handler();
     }
 }
-
+/**
+ * 用来设置电机的控制模式
+ * @param _hcan
+ * @param ContorlMode
+ * @param InputMode
+ * @param stdid
+ */
 void Odrive_Set_ControlMode(CAN_HandleTypeDef *_hcan, uint32_t ContorlMode,uint32_t InputMode,uint32_t stdid)
 {
     static CAN_TxHeaderTypeDef TxHeader;
@@ -151,7 +165,13 @@ void Odrive_Set_ControlMode(CAN_HandleTypeDef *_hcan, uint32_t ContorlMode,uint3
         Error_Handler();
     }
 }
-
+/**
+ * 用来获取电机编码器的速度与位置的值，数据可以为0
+ * @param _hcan
+ * @param Pos
+ * @param Vel
+ * @param stdid
+ */
 void Odrive_Encoder_feedback(CAN_HandleTypeDef *_hcan, float Pos,float Vel,uint32_t stdid)
 {
     static CAN_TxHeaderTypeDef TxHeader;
@@ -185,11 +205,65 @@ void Odrive_Encoder_feedback(CAN_HandleTypeDef *_hcan, float Pos,float Vel,uint3
         Error_Handler();
     }
 }
+/**
+ * 将目标id电机的通信模式由CAN转为USB
+ * @param _hcan
+ * @param stdid
+ */
+void Odrive_CAN_to_USB(CAN_HandleTypeDef *_hcan,uint32_t stdid)
+{
+    static CAN_TxHeaderTypeDef TxHeader;
+    static uint8_t TxData[8];
+    static uint32_t mbox;         //发送使用到的can邮箱
 
+    TxHeader.StdId = stdid;
+    TxHeader.IDE = 0;
+    TxHeader.RTR = 0;
+    TxHeader.DLC = 8;
+
+    feedback.data_pos = 0;
+    TxData[0] = Setmode.data_8[0];
+    TxData[1] = Setmode.data_8[1];
+    TxData[2] = Setmode.data_8[2];
+    TxData[3] = Setmode.data_8[3];
+
+    feedback.data_vel = 0;
+    TxData[4] = Setmode.data_8[0];
+    TxData[5] = Setmode.data_8[1];
+    TxData[6] = Setmode.data_8[2];
+    TxData[7] = Setmode.data_8[3];
+
+
+    //等一个空の邮箱呢
+    while(HAL_CAN_GetTxMailboxesFreeLevel(_hcan) == 0);
+
+    //发送成功了吗？失败就卡住了捏
+    if (HAL_CAN_AddTxMessage(_hcan, &TxHeader, TxData, &mbox) != HAL_OK)
+    {
+        Error_Handler();
+    }
+}
+
+/**
+ * 发送编码器之后的解包函数，用来获取电机当前的速度与角度
+ * @param ptr 反馈报文的结构体
+ * @param data 接收到的存放反馈报文的数组
+ */
 void Odrive_feedback_record(Feedback *ptr,uint8_t *data)
 {
     ptr->Pos = (float ) ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
     ptr->Vel = (float ) ((data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4]);
+}
+/**
+ * 对位置环的输出进行限幅
+ * @param Limit_Speed
+ */
+void AllMotorSpeedLimit(int16_t Limit_Speed)
+{
+    for(int i=1;i < 9;i++)
+    {
+        AngleLoop[i].Output_limit = Limit_Speed;
+    }
 }
 
 void Odrive_val_output(uint8_t id)
@@ -273,7 +347,9 @@ void Odrive_Postion_output(uint8_t id)
             break;
     }
 }
-
+/**
+ * 发送八个电机的速度输出
+ */
 void AllMotor_valOutput(void)
 {
     for(uint8_t Id = 1;Id < 9;Id ++)
@@ -281,11 +357,61 @@ void AllMotor_valOutput(void)
         Odrive_val_output(Id);
     }
 }
-
+/**
+ * 发送八个电机的位置输出
+ */
 void AllMotor_PositionOutput(void)
 {
     for(uint8_t Id = 1;Id < 9;Id ++)
     {
         Odrive_Postion_output(Id);
     }
+}
+
+void Motor_Init(void)
+{
+    /**
+     * 电机每次上电需要先进行校准才能进入闭环，没有好的解决方法
+     * 也许是我搞错了，之后有时间再试试可不可以直接进入闭环模式
+     */
+    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis1_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis2_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis3_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis4_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis5_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis6_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis7_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis8_Requested_State);
+    osDelay(1);
+
+    osDelay(6000); //最多等待6s电机校准完成
+
+    /**
+     * 发送指令使电机进入闭环控制模式
+     */
+
+    Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis1_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis2_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis3_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis4_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis5_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis6_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis7_Requested_State);
+    osDelay(1);
+    Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis8_Requested_State);
+    osDelay(1);
+
 }

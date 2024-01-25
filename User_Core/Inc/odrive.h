@@ -79,6 +79,7 @@ typedef union
     float   data_f[2];
     int data_i32[2];
     uint32_t data_u32[2];
+
 }union_64;
 
 /*********
@@ -195,6 +196,19 @@ typedef union
 #define Set_Axis8_Set_Input_Vel      Axis8_ID + 0x00D
 
 /**
+ * 将目标电机的通信方式由CAN转换为USB
+ */
+
+#define Turn_Axis1_to_USB             Axis1_ID + 0x1E
+#define Turn_Axis2_to_USB             Axis2_ID + 0x1E
+#define Turn_Axis3_to_USB             Axis3_ID + 0x1E
+#define Turn_Axis4_to_USB             Axis4_ID + 0x1E
+#define Turn_Axis5_to_USB             Axis5_ID + 0x1E
+#define Turn_Axis6_to_USB             Axis6_ID + 0x1E
+#define Turn_Axis7_to_USB             Axis7_ID + 0x1E
+#define Turn_Axis8_to_USB             Axis8_ID + 0x1E
+
+/**
  *Odrive state 的所含状态
  */
 
@@ -235,6 +249,16 @@ typedef union
 #define INPUT_MODE_MIRROR    										7
 #define INPUT_MODE_Tuning    										8
 
+/**
+ * 文档中规定最大转速为42+-10%
+ * 额定转速为12+-10%
+ */
+
+#define SpeedMax 35
+#define SpeedNormal 15
+#define SpeedMin 10
+#define ReductionRatio 8
+
 extern Feedback GIM6010[9];
 
 void Odrive_Axis_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque,uint32_t stdid);
@@ -247,5 +271,8 @@ void AllMotor_valOutput(void);
 void Odrive_Postion_output(uint8_t id);
 void AllMotor_PositionOutput(void);
 void Odrive_feedback_record(Feedback *ptr,uint8_t *data);
+void Motor_Init(void);
+void Odrive_CAN_to_USB(CAN_HandleTypeDef *_hcan,uint32_t stdid);
+void AllMotorSpeedLimit(int16_t Limit_Speed);
 
 #endif
