@@ -143,8 +143,6 @@ void StartDebug(void const * argument)
   /* USER CODE BEGIN StartDebug */
     Mymain_Init();
 
-    Motor_Init();
-
     vTaskResume(GIM_OutputHandle);
     vTaskResume(RemoteControlTaHandle);
 
