@@ -143,6 +143,8 @@ void StartDebug(void const * argument)
   /* USER CODE BEGIN StartDebug */
     Mymain_Init();
 
+    Motor_Init();
+
     vTaskResume(GIM_OutputHandle);
     vTaskResume(RemoteControlTaHandle);
 
@@ -198,7 +200,15 @@ void GIM_OutputTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-    osDelay(1);
+      PID_Init(&AngleLoop[1]);
+      PID_Set_KP_KI_KD(&AngleLoop[1],0.5f,0.0f,0.01f);
+      SetPoint(&AngleLoop[1],30,0);
+      PID_PosLocCalc(&AngleLoop[1],GIM6010[1].data_pos);
+
+      AllMotorSpeedLimit(2);
+      Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[1].Out_put,0.0f,Set_Axis1_Set_Input_Vel);
+
+    osDelay(5);
   }
   /* USER CODE END GIM_OutputTask */
 }

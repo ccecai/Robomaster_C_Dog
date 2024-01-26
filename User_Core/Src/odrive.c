@@ -3,7 +3,7 @@
 
 union_32 union_32f;
 union_16 union_16f;
-FeedBack feedback;
+Feedback feedback;
 SetState Setstate;
 SetMode Setmode;
 Feedback GIM6010[9];
@@ -165,46 +165,7 @@ void Odrive_Set_ControlMode(CAN_HandleTypeDef *_hcan, uint32_t ContorlMode,uint3
         Error_Handler();
     }
 }
-/**
- * 用来获取电机编码器的速度与位置的值，数据可以为0
- * @param _hcan
- * @param Pos
- * @param Vel
- * @param stdid
- */
-void Odrive_Encoder_feedback(CAN_HandleTypeDef *_hcan, float Pos,float Vel,uint32_t stdid)
-{
-    static CAN_TxHeaderTypeDef TxHeader;
-    static uint8_t TxData[8];
-    static uint32_t mbox;         //发送使用到的can邮箱
 
-    TxHeader.StdId = stdid;
-    TxHeader.IDE = 0;
-    TxHeader.RTR = 0;
-    TxHeader.DLC = 8;
-
-    feedback.data_pos = Pos;
-    TxData[0] = Setmode.data_8[0];
-    TxData[1] = Setmode.data_8[1];
-    TxData[2] = Setmode.data_8[2];
-    TxData[3] = Setmode.data_8[3];
-
-    feedback.data_vel = Vel;
-    TxData[4] = Setmode.data_8[0];
-    TxData[5] = Setmode.data_8[1];
-    TxData[6] = Setmode.data_8[2];
-    TxData[7] = Setmode.data_8[3];
-
-
-    //等一个空の邮箱呢
-    while(HAL_CAN_GetTxMailboxesFreeLevel(_hcan) == 0);
-
-    //发送成功了吗？失败就卡住了捏
-    if (HAL_CAN_AddTxMessage(_hcan, &TxHeader, TxData, &mbox) != HAL_OK)
-    {
-        Error_Handler();
-    }
-}
 /**
  * 将目标id电机的通信模式由CAN转为USB
  * @param _hcan
@@ -220,19 +181,6 @@ void Odrive_CAN_to_USB(CAN_HandleTypeDef *_hcan,uint32_t stdid)
     TxHeader.IDE = 0;
     TxHeader.RTR = 0;
     TxHeader.DLC = 8;
-
-    feedback.data_pos = 0;
-    TxData[0] = Setmode.data_8[0];
-    TxData[1] = Setmode.data_8[1];
-    TxData[2] = Setmode.data_8[2];
-    TxData[3] = Setmode.data_8[3];
-
-    feedback.data_vel = 0;
-    TxData[4] = Setmode.data_8[0];
-    TxData[5] = Setmode.data_8[1];
-    TxData[6] = Setmode.data_8[2];
-    TxData[7] = Setmode.data_8[3];
-
 
     //等一个空の邮箱呢
     while(HAL_CAN_GetTxMailboxesFreeLevel(_hcan) == 0);
@@ -251,8 +199,9 @@ void Odrive_CAN_to_USB(CAN_HandleTypeDef *_hcan,uint32_t stdid)
  */
 void Odrive_feedback_record(Feedback *ptr,uint8_t *data)
 {
-    ptr->Pos = (float ) ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
-    ptr->Vel = (float ) ((data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4]);
+    ptr->data_pos = (float ) ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
+    ptr->data_vel = (float ) ((data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4]);
+
 }
 /**
  * 对位置环的输出进行限幅
@@ -374,25 +323,8 @@ void Motor_Init(void)
      * 电机每次上电需要先进行校准才能进入闭环，没有好的解决方法
      * 也许是我搞错了，之后有时间再试试可不可以直接进入闭环模式
      */
-    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis1_Requested_State);
-    osDelay(1);
-    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis2_Requested_State);
-    osDelay(1);
-    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis3_Requested_State);
-    osDelay(1);
-    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis4_Requested_State);
-    osDelay(1);
-    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis5_Requested_State);
-    osDelay(1);
-    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis6_Requested_State);
-    osDelay(1);
-    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis7_Requested_State);
-    osDelay(1);
-    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis8_Requested_State);
-    osDelay(1);
-
-    osDelay(6000); //最多等待6s电机校准完成
-
+//    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis1_Requested_State);
+//    osDelay(6000);
     /**
      * 发送指令使电机进入闭环控制模式
      */
@@ -414,4 +346,5 @@ void Motor_Init(void)
     Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis8_Requested_State);
     osDelay(1);
 
+//    Odrive_Axis_Set_Input_Vel(&hcan1,5.0f,0.01f,0x0D);
 }

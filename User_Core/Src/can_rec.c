@@ -173,7 +173,8 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
     HAL_StatusTypeDef HAL_RetVal;
     CAN_RxHeaderTypeDef RxHeader;
     union_64 rxdata;
-    FeedBack feed_rxdata;
+    Feedback feed_rxdata;
+    vfeedback changedata;
     /*电机号记录*/
     static uint8_t index;
 
@@ -187,7 +188,10 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
             if(RxHeader.StdId >= Get_Axis1_Encoder && RxHeader.StdId <= Get_Axis8_Encoder)
             {
                 index = (RxHeader.StdId - 0x009) >> 5;
-                Odrive_feedback_record(&GIM6010[index],feed_rxdata.data_8);
+
+                GIM6010[index].data_pos = feed_rxdata.data_pos;
+
+                usart_printf("%f\n",GIM6010[1].data_pos);
             }
             __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);   //清一下，不然就卡住了
         }

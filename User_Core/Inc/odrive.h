@@ -4,15 +4,21 @@
 #include "main.h"
 
 /**
- * 电机回馈报文结构体
+ * 得到编码器反馈电机速度与位置的结构体
  */
 
-typedef struct
+typedef union
 {
-    float Pos;
-    float Vel;
+    uint8_t data_8[8];
+    float data_pos;
+    float data_vel;
 }Feedback;
 
+typedef union
+{
+    uint8_t data_v8[4];
+    float data_v;
+}vfeedback;
 /**
  * 输出速度模式所用的结构体
  */
@@ -46,17 +52,6 @@ typedef union
     uint8_t data_8[8];
     uint32_t data_id;
 }SetState;
-
-/**
- * 得到编码器反馈电机速度与位置的结构体
- */
-
-typedef union
-{
-    uint8_t data_8[4];
-    float data_pos;
-    float data_vel;
-}FeedBack;
 
 /**
  * 设置电机控制模式的结构体
