@@ -250,11 +250,13 @@ typedef union
  */
 
 #define SpeedMax 35
+#define SpeedFast 25
 #define SpeedNormal 15
 #define SpeedMin 10
 #define ReductionRatio 8
 
 extern Feedback GIM6010[9];
+extern float begin_pos[9];
 
 void Odrive_Axis_Set_Input_Vel(CAN_HandleTypeDef *_hcan, float Input_Vel,float Torque,uint32_t stdid);
 void Odrive_Axis_Set_Input_Position(CAN_HandleTypeDef *_hcan, float Input_Pos,int16_t Vel_FF,int16_t Torque_FF,uint32_t stdid);
@@ -269,5 +271,7 @@ void Odrive_feedback_record(Feedback *ptr,uint8_t *data);
 void Motor_Init(void);
 void Odrive_CAN_to_USB(CAN_HandleTypeDef *_hcan,uint32_t stdid);
 void AllMotorSpeedLimit(int16_t Limit_Speed);
+void Read_beginPos(void);
+void Leg_Output(void);
 
 #endif

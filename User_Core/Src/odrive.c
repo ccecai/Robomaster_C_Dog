@@ -1,6 +1,8 @@
 #include "odrive.h"
 #include "can.h"
 
+float begin_pos[9];
+
 union_32 union_32f;
 union_16 union_16f;
 Feedback feedback;
@@ -320,12 +322,6 @@ void AllMotor_PositionOutput(void)
 void Motor_Init(void)
 {
     /**
-     * 电机每次上电需要先进行校准才能进入闭环，没有好的解决方法
-     * 也许是我搞错了，之后有时间再试试可不可以直接进入闭环模式
-     */
-//    Odrive_Set_State(&hcan1, AXIS_STATE_MOTOR_CALIBRATION,Set_Axis1_Requested_State);
-//    osDelay(6000);
-    /**
      * 发送指令使电机进入闭环控制模式
      */
 
@@ -346,5 +342,47 @@ void Motor_Init(void)
     Odrive_Set_State(&hcan1, AXIS_STATE_CLOSED_LOOP_CONTROL,Set_Axis8_Requested_State);
     osDelay(1);
 
-//    Odrive_Axis_Set_Input_Vel(&hcan1,5.0f,0.01f,0x0D);
+//    Odrive_Axis_Set_Input_Vel(&hcan1,0.0f,0.01f,0x0D);
+}
+
+void Read_beginPos(void)
+{
+    for(uint8_t i = 1;i < 9;i ++)
+    {
+        begin_pos[i] = GIM6010[i].data_pos;
+    }
+}
+
+void Leg_Output(void)
+{
+    for(uint8_t id = 1;id < 9;id ++)
+    {
+        SetPoint(&AngleLoop[id],AngleWant_MotorX[id],id);
+        PID_PosLocCalc(&AngleLoop[id],GIM6010[id].data_pos,id);
+    }
+
+    Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[1].Out_put,0.01f,Set_Axis1_Set_Input_Vel);
+    osDelay(1);
+
+    Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[2].Out_put,0.01f,Set_Axis2_Set_Input_Vel);
+    osDelay(1);
+
+    Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[3].Out_put,0.01f,Set_Axis3_Set_Input_Vel);
+    osDelay(1);
+
+    Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[4].Out_put,0.01f,Set_Axis4_Set_Input_Vel);
+    osDelay(1);
+
+    Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[5].Out_put,0.01f,Set_Axis5_Set_Input_Vel);
+    osDelay(1);
+
+    Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[6].Out_put,0.01f,Set_Axis6_Set_Input_Vel);
+    osDelay(1);
+
+    Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[7].Out_put,0.01f,Set_Axis7_Set_Input_Vel);
+    osDelay(1);
+
+    Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[8].Out_put,0.01f,Set_Axis8_Set_Input_Vel);
+    osDelay(1);
+
 }

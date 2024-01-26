@@ -190,8 +190,6 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
                 index = (RxHeader.StdId - 0x009) >> 5;
 
                 GIM6010[index].data_pos = feed_rxdata.data_pos;
-
-                usart_printf("%f\n",GIM6010[1].data_pos);
             }
             __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);   //清一下，不然就卡住了
         }

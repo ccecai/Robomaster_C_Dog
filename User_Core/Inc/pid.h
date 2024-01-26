@@ -46,7 +46,7 @@ void PID_Init(PIDTypeDef *pid);
 void PID_Set_KP_KI_KD(PIDTypeDef *pid,float kp,float ki,float kd);
 void SetPoint(PIDTypeDef *pid,float want,uint8_t id);
 void SetPoint_Speed(PIDTypeDef *pid,float want);
-void PID_PosLocCalc(PIDTypeDef *pid,int32_t feedbackpos);
+void PID_PosLocCalc(PIDTypeDef *pid,int32_t feedbackpos,uint8_t id);
 void PID_PosLocCalc_IMU(PIDTypeDef *pid, int32_t feedbackpos);//位置式;
 void PID_IncCalc(PIDTypeDef *pid,int16_t feedbackspeed);
 void ChangeGainOfPID(float pos_kp,float pos_kd,float sp_kp,float sp_ki);

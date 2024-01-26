@@ -184,12 +184,12 @@ void Posture_Controller(RC_ctrl_t *local_rc_ctrl)
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[0] > 330)
     {
-        Turn('r');
+        Turn('r','f');
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[0] < -330)
     {
-        Turn('l');
+        Turn('l','f');
     }
 
     else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[0] > -330 && local_rc_ctrl->rc.ch[0] < 330 && local_rc_ctrl->rc.ch[1] > -330 && local_rc_ctrl->rc.ch[1] < 330)

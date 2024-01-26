@@ -53,6 +53,7 @@ fp32 temp;
 osThreadId StartDebugTaskHandle;
 osThreadId RemoteControlTaHandle;
 osThreadId GIM_OutputHandle;
+osThreadId GIM6010InitHandle;
 
 /* Private function prototypes -----------------------------------------------*/
 /* USER CODE BEGIN FunctionPrototypes */
@@ -62,6 +63,7 @@ osThreadId GIM_OutputHandle;
 void StartDebug(void const * argument);
 void RemoteControl(void const * argument);
 void GIM_OutputTask(void const * argument);
+void GIM6010InitTask(void const * argument);
 
 void MX_FREERTOS_Init(void); /* (MISRA C 2004 rule 8.1) */
 
@@ -122,11 +124,16 @@ void MX_FREERTOS_Init(void) {
   osThreadDef(GIM_Output, GIM_OutputTask, osPriorityNormal, 0, 512);
   GIM_OutputHandle = osThreadCreate(osThread(GIM_Output), NULL);
 
+  /* definition and creation of GIM6010Init */
+  osThreadDef(GIM6010Init, GIM6010InitTask, osPriorityNormal, 0, 256);
+  GIM6010InitHandle = osThreadCreate(osThread(GIM6010Init), NULL);
+
   /* USER CODE BEGIN RTOS_THREADS */
   /* add threads, ... */
     vTaskResume(StartDebugTaskHandle);
     vTaskSuspend(GIM_OutputHandle);
     vTaskSuspend(RemoteControlTaHandle);
+    vTaskSuspend(GIM6010InitHandle);
   /* USER CODE END RTOS_THREADS */
 
 }
@@ -143,11 +150,7 @@ void StartDebug(void const * argument)
   /* USER CODE BEGIN StartDebug */
     Mymain_Init();
 
-    Motor_Init();
-
-    vTaskResume(GIM_OutputHandle);
-    vTaskResume(RemoteControlTaHandle);
-
+    vTaskSuspend(GIM6010InitHandle);
   /* Infinite loop */
   for(;;)
   {
@@ -200,17 +203,38 @@ void GIM_OutputTask(void const * argument)
   /* Infinite loop */
   for(;;)
   {
-      PID_Init(&AngleLoop[1]);
-      PID_Set_KP_KI_KD(&AngleLoop[1],0.5f,0.0f,0.01f);
-      SetPoint(&AngleLoop[1],30,0);
-      PID_PosLocCalc(&AngleLoop[1],GIM6010[1].data_pos);
-
-      AllMotorSpeedLimit(2);
-      Odrive_Axis_Set_Input_Vel(&hcan1,AngleLoop[1].Out_put,0.0f,Set_Axis1_Set_Input_Vel);
+      Leg_Output();
 
     osDelay(5);
   }
   /* USER CODE END GIM_OutputTask */
+}
+
+/* USER CODE BEGIN Header_GIM6010InitTask */
+/**
+* @brief Function implementing the GIM6010Init thread.
+* @param argument: Not used
+* @retval None
+*/
+/* USER CODE END Header_GIM6010InitTask */
+void GIM6010InitTask(void const * argument)
+{
+  /* USER CODE BEGIN GIM6010InitTask */
+    Motor_Init();
+
+    Read_beginPos(); //读取电机上电时候的初始位置
+    Eight_PID_Init();
+    ChangeGainOfPID(5.0f,0.0f,0.0f,0.0f);//输出化PID
+
+    vTaskResume(RemoteControlTaHandle);
+    vTaskResume(GIM_OutputHandle);
+    vTaskSuspend(NULL);
+  /* Infinite loop */
+  for(;;)
+  {
+    osDelay(1);
+  }
+  /* USER CODE END GIM6010InitTask */
 }
 
 /* Private application code --------------------------------------------------*/

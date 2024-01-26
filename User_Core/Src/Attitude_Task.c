@@ -12,40 +12,49 @@ int Global_IMU_Control = 0;
 
 void StandUp_Posture(void)
 {
+    AllMotorSpeedLimit(SpeedNormal);
     Get_Target(0,PI);
     SetCoupledThetaPositionAll();
-
 }
 
 void LieDown_Posture(void)
 {
+    AllMotorSpeedLimit(SpeedMin);
     for(int i = 1;i < 9;i ++)
     {
         AngleWant_MotorX[i] = 0;
     }
 }
-//测试用Trot步态
-void Test_Move(void)
+void MarkingTime(void)
 {
-    ChangeGainOfPID(60,0,0.6f,0);
-    gait_detached(state_detached_params[9],Leg1_Delay,Leg2_Delay,Leg3_Delay,Leg4_Delay,Forward,Forward,Forward,Forward);
+    AllMotorSpeedLimit(SpeedFast);
+    ChangeGainOfPID(3.8f,0,0.6f,0);
+//    ChangeYawOfPID(50.0f,0.5f,2500.0f,10.0f);
+//    YawControl(yawwant, &state_detached_params[2], 1.0f);
+    gait_detached(state_detached_params[2],0.0,0.75,0.5,0.25,
+                  1.0f,1.0f,1.0f,1.0f);
 }
 //实际运行Trot步态
 void Trot(float direction,int8_t kind)
 {
     switch(kind)
     {
-        case 0://大步Trot
-            NewHeartbeat = 5;
-            ChangeGainOfPID(60,0,0.6f,0);
-            gait_detached(state_detached_params[0],0.0f, 0.5f, 0.5f, 0.0f,
+        case 0://小步Trot
+            AllMotorSpeedLimit(SpeedNormal);
+            NewHeartbeat = 6;
+            ChangeGainOfPID(3.5f,0,0.6f,0);
+//            ChangeYawOfPID(200.0f,2.0f,3000.0f,10.0f);
+//            YawControl(yawwant, &state_detached_params[4], direction);
+            gait_detached(state_detached_params[4],0.0f, 0.5f, 0.5f, 0.0f,
                           direction,direction,direction,direction);
             break;
-        case 1://小步Trot
-            NewHeartbeat = 6;
-            ChangeGainOfPID(7.0f,0,0.6f,0);
-//            YawControl(yawwant, &state_detached_params[11],direction);
-            gait_detached(state_detached_params[11],0.0f, 0.5f, 0.5f, 0.0f,
+        case 1://大步Trot
+            AllMotorSpeedLimit(SpeedFast);
+            NewHeartbeat = 5;
+            ChangeGainOfPID(3.8f,0,0.6f,0);
+//            ChangeYawOfPID(1000.0f,10.0f,4000.0f,15.0f);
+//            YawControl(yawwant, &state_detached_params[1], direction);
+            gait_detached(state_detached_params[1],0.0f, 0.5f, 0.5f, 0.0f,
                           direction,direction,direction,direction);
             break;
         default:
@@ -56,64 +65,56 @@ void Trot(float direction,int8_t kind)
 //慢步
 void Walk(float direction,uint8_t speed)
 {
-//    PID_Set_KP_KI_KD(&Yaw_PID_Loop,1.7,0,1.0);
-//    YawControl(yawwant,&state_detached_params[1],direction);
-//    Yaw_PID_Loop.SumError_limit = 2500;Yaw_PID_Loop.Output_limit = 45;
     NewHeartbeat = 4;
-    ChangeGainOfPID(60,0,0.6f,0);
-    gait_detached(state_detached_params[1],0.0,0.75,0.5,0.25,direction,direction,direction,direction);
+    AllMotorSpeedLimit(SpeedFast);
+    ChangeGainOfPID(3.5f,0,0.6f,0);
+//    ChangeYawOfPID(100.0f,0.5f,2500.0f,10.0f);
+//    YawControl(yawwant, &state_detached_params[3], direction);
+    gait_detached(state_detached_params[3],0.0,0.75,0.5,0.25,direction,direction,direction,direction);
 }
 //转弯步态
-void Turn(int state_flag)
+void Turn(int state_flag,int speed_flag)
 {
+    float length;
+
+    if(speed_flag == 'f')
+    {
+        length = 20.0f;
+        state_detached_params[0].detached_params_0.freq = 4.0f;
+        state_detached_params[0].detached_params_1.freq = 4.0f;
+        state_detached_params[0].detached_params_2.freq = 4.0f;
+        state_detached_params[0].detached_params_3.freq = 4.0f;
+    }
+    else if(speed_flag == 's')
+    {
+        length = 5.0f;
+        state_detached_params[0].detached_params_0.freq = 1.5f;
+        state_detached_params[0].detached_params_1.freq = 1.5f;
+        state_detached_params[0].detached_params_2.freq = 1.5f;
+        state_detached_params[0].detached_params_3.freq = 1.5f;
+    }
+
     NewHeartbeat = 5;
-//    ChangeGainOfPID(60,0,0.6f,0);
+    AllMotorSpeedLimit(SpeedFast);
+    ChangeGainOfPID(4.0f,0,0.6f,0);
     switch (state_flag) {
         case 'l':
-            state_detached_params[8].detached_params_0.step_length = -20.0f;
-            state_detached_params[8].detached_params_1.step_length = -20.0f;
-            state_detached_params[8].detached_params_2.step_length = 20.0f;
-            state_detached_params[8].detached_params_3.step_length = 20.0f;
+            state_detached_params[0].detached_params_0.step_length = -length;
+            state_detached_params[0].detached_params_1.step_length = -length;
+            state_detached_params[0].detached_params_2.step_length = length;
+            state_detached_params[0].detached_params_3.step_length = length;
             break;
         case 'r':
-            state_detached_params[8].detached_params_0.step_length = 20.0f;
-            state_detached_params[8].detached_params_1.step_length = 20.0f;
-            state_detached_params[8].detached_params_2.step_length = -20.0f;
-            state_detached_params[8].detached_params_3.step_length = -20.0f;
+            state_detached_params[0].detached_params_0.step_length = length;
+            state_detached_params[0].detached_params_1.step_length = length;
+            state_detached_params[0].detached_params_2.step_length = -length;
+            state_detached_params[0].detached_params_3.step_length = -length;
             break;
         default:
             break;
     }
-    gait_detached(state_detached_params[8],  0.0f, 0.5f, 0.5f, 0.0f,
+    gait_detached(state_detached_params[0],  0.0f, 0.5f, 0.5f, 0.0f,
                   1.0f, 1.0f, 1.0f,1.0f);
-}
-
-void Dog_Posture(void)
-{
-    switch (gpstate) {
-        case HALT:
-            StandUp_Posture();
-            break;
-        case END:
-            LieDown_Posture();
-            break;
-        case TURN_LEFT:
-            Turn('l');
-            break;
-        case TURN_RIGHT:
-            Turn('r');
-            break;
-        case MARCH:
-            Walk(Forward,0);
-            break;
-        case MARCH_BACK:
-            Walk(Backward,0);
-            break;
-        case Tro:
-            Trot(Forward,1);
-        default:
-            break;
-    }
 }
 
 void Up_and_Down(float val)
