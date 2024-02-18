@@ -107,8 +107,8 @@ void MX_FREERTOS_Init(void) {
 
   /* USER CODE BEGIN RTOS_QUEUES */
   /* add queues, ... */
-//    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
-//    imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
+    osThreadDef(imuTask, INS_task, osPriorityRealtime, 0, 1024);
+    imuTaskHandle = osThreadCreate(osThread(imuTask), NULL);
   /* USER CODE END RTOS_QUEUES */
 
   /* Create the thread(s) */
@@ -150,7 +150,7 @@ void StartDebug(void const * argument)
   /* USER CODE BEGIN StartDebug */
     Mymain_Init();
 
-    vTaskSuspend(GIM6010InitHandle);
+    vTaskResume(GIM6010InitHandle);
   /* Infinite loop */
   for(;;)
   {

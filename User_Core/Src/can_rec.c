@@ -165,6 +165,11 @@ void motor_info_record(moto_info_t *ptr, uint8_t *data)
     ptr->msg_cnt++;     //消息计数+1
 }
 
+void GIM6010_info_record(Feedback *ptr, uint8_t *data)
+{
+    ptr->data_pos = ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
+}
+
 /**
   * @brief  这是fifo0的回调函数，作用相当于can的rx0中断
   */
@@ -174,7 +179,7 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
     CAN_RxHeaderTypeDef RxHeader;
     union_64 rxdata;
     Feedback feed_rxdata;
-    vfeedback changedata;
+//    vfeedback changedata;
     /*电机号记录*/
     static uint8_t index;
 

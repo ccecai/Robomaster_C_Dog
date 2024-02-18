@@ -7,6 +7,8 @@
  * 得到编码器反馈电机速度与位置的结构体
  */
 
+//测试改变float成int32_t会不会解决bug
+
 typedef union
 {
     uint8_t data_8[8];

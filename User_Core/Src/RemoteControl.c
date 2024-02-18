@@ -197,14 +197,14 @@ void Posture_Controller(RC_ctrl_t *local_rc_ctrl)
         StandUp_Posture();
     }
 
-    else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[3] > 330)
-    {
-        Up_and_Down((float)((local_rc_ctrl->rc.ch[3] - 330)) / 500);
-    }
-
-    else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[3] < -330)
-    {
-        Up_and_Down((float)((local_rc_ctrl->rc.ch[3] + 300)) / 500);
-    }
+//    else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[3] > 330)
+//    {
+//        Up_and_Down((float)((local_rc_ctrl->rc.ch[3] - 330)) / 500);
+//    }
+//
+//    else if(local_rc_ctrl->rc.s[1] == 2 && local_rc_ctrl->rc.ch[3] < -330)
+//    {
+//        Up_and_Down((float)((local_rc_ctrl->rc.ch[3] + 300)) / 500);
+//    }
 
 }
