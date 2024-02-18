@@ -167,7 +167,8 @@ void motor_info_record(moto_info_t *ptr, uint8_t *data)
 
 void GIM6010_info_record(Feedback *ptr, uint8_t *data)
 {
-    ptr->data_pos = ((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
+    ptr->data_pos = (float )((data[3] << 24) | (data[2] << 16) | (data[1] << 8) | data[0]);
+    ptr->data_vel = (float )((data[7] << 24) | (data[6] << 16) | (data[5] << 8) | data[4]);
 }
 
 /**
@@ -178,23 +179,22 @@ void HAL_CAN_RxFifo0MsgPendingCallback(CAN_HandleTypeDef *hcan)  //接收回调函数
     HAL_StatusTypeDef HAL_RetVal;
     CAN_RxHeaderTypeDef RxHeader;
     union_64 rxdata;
-    Feedback feed_rxdata;
-//    vfeedback changedata;
+    uint8_t data_8[8];
     /*电机号记录*/
     static uint8_t index;
 
     if(hcan == &hcan1)
     {
-        HAL_RetVal = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, feed_rxdata.data_8);      //从CAN1接收数据，通过过滤器后放入FIFO0,存入RxMessage数据帧
+        HAL_RetVal = HAL_CAN_GetRxMessage(hcan, CAN_RX_FIFO0, &RxHeader, data_8);      //从CAN1接收数据，通过过滤器后放入FIFO0,存入RxMessage数据帧
 
         if(HAL_RetVal == HAL_OK)
         {
-
             if(RxHeader.StdId >= Get_Axis1_Encoder && RxHeader.StdId <= Get_Axis8_Encoder)
             {
                 index = (RxHeader.StdId - 0x009) >> 5;
 
-                GIM6010[index].data_pos = feed_rxdata.data_pos;
+                GIM6010_info_record(&GIM6010[index],data_8);
+//                GIM6010[index].data_pos = feed_rxdata.data_pos;
             }
             __HAL_CAN_ENABLE_IT(&hcan1, CAN_IT_RX_FIFO0_MSG_PENDING);   //清一下，不然就卡住了
         }

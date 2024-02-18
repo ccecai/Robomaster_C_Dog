@@ -7,20 +7,12 @@
  * 得到编码器反馈电机速度与位置的结构体
  */
 
-//测试改变float成int32_t会不会解决bug
-
-typedef union
+typedef struct
 {
-    uint8_t data_8[8];
     float data_pos;
     float data_vel;
 }Feedback;
 
-typedef union
-{
-    uint8_t data_v8[4];
-    float data_v;
-}vfeedback;
 /**
  * 输出速度模式所用的结构体
  */
